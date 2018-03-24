@@ -17,7 +17,11 @@ app.config(['$routeProvider',function($routeProvider) {
 			.when("/generateBills", {
 				templateUrl: "src/client/pages/generateBills.html",
 				controller: "generateBills"
-			})
+            })
+            .when("/occupiedRooms", {
+                templateUrl: "src/client/pages/occupiedRooms.html",
+                controller: "occupiedRooms"
+            })
 			.when("/viewProfits", {
 				templateUrl: "src/client/pages/viewProfits.html",
 				controller: "viewProfits"
@@ -44,7 +48,38 @@ app.controller('generateBills', ['$scope','$http','NgTableParams', function($sco
 		});
 	}
 
-}]);	
+}]);
+//view occupied rooms
+app.controller('occupiedRooms', ['$scope', '$http', function ($scope, $http) {
+    $scope.startDate = "2017-01-01";
+    $scope.endDate = "2018-01-01";
+
+    $scope.loadData = function () {
+        $http.get("./getRoomReservation?startDate=" + $scope.startDate + "&endDate=" + $scope.endDate).success(function (d) {
+            $scope.roomsChart = {
+                data: {
+                    labels: ['Free', 'Occupied', 'Reserved'],
+                    datasets: [{
+                        data: [100 - d.ocnt - d.rcnt, d.ocnt, d.rcnt],
+                        backgroundColor: ["#aaaaaa", "#04a558", "#ffd000"]
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        fontSize: 16,
+                        text: "Occupied Rooms"
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+    $scope.loadData();
+}]);
 //view bills
 app.controller('viewBills', ['$scope','$http','NgTableParams', function($scope,$http,ngTableParams){
 	$http.get("./getBills").success(function(data) {
@@ -115,7 +150,6 @@ app.controller('newReservation', ['$scope','$http',function($scope,$http){
 					}
 				}
 			}
-			console.log($scope.profitsChart);
     });
 	}
 	$scope.loadData();

@@ -60,13 +60,21 @@ app.get('/getProfits', function (req, res) {
     });
 
 });
-app.get('/getCustomers', function (req, res) {
+app.get('/getRoomReservation', function (req, res) {
 
-    var query="SELECT id, firstname||' '||lastname customer FROM cs421g14.customer"
+    var query = "SELECT r.CNT rCNT,o.CNT oCNT FROM" +
+                "(SELECT COUNT(r.roomid) CNT FROM cs421g14.reservation r" +
+                " WHERE r.Status = 'New Reservation' AND" +
+                " r.arrivalTime >= '" + req.query.startDate + "'::timestamp AND" +
+                " r.departuretime <= '" + req.query.startDate + "'::timestamp) r," +
+                " (SELECT COUNT(o.roomid) CNT FROM cs421g14.occupation o" +
+                " WHERE o.arrivalTime >= '" + req.query.startDate + "'::timestamp AND " +
+                " o.checkouttime <= '" + req.query.startDate + "'::timestamp) o"
+
   
     db.any(query)
       .then(data => {
-          res.status(200).send(data);
+          res.status(200).send(data[0]);
       })
       .catch(error => {
           console.log(error);

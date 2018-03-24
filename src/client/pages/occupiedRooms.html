@@ -1,0 +1,17 @@
+<div class="container">
+    <h3>Rooms Occupied in Timeframe</h3>
+    <div class="row">
+        <div class="col-md-6">
+            <label>Start Date:</label>
+            <input type="text" class="form-control" datetimepicker ng-change="loadData()" ng-model="startDate">
+        </div>
+        <div class="col-md-6">
+            <label>End Date:</label>
+            <input type="text" class="form-control" datetimepicker ng-change="loadData()" ng-model="endDate">
+        </div>
+    </div>
+    <div style="padding-top:15px;width:100%;height:50%">
+        <canvas tc-chartjs chart-type="pie" chart-data="roomsChart.data" chart-options="roomsChart.options"></canvas>
+    </div>
+   
+</div>
