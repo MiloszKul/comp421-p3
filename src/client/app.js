@@ -14,6 +14,10 @@ app.config(['$routeProvider',function($routeProvider) {
 				templateUrl: "src/client/pages/newReservation.html",
 				controller: "newReservation"
 			})
+			.when("/generateBills", {
+				templateUrl: "src/client/pages/generateBills.html",
+				controller: "generateBills"
+			})
 			.when("/viewProfits", {
 				templateUrl: "src/client/pages/viewProfits.html",
 				controller: "viewProfits"
@@ -28,6 +32,19 @@ app.config(['datetimepickerProvider',function (datetimepickerProvider) {
     });
 }]);
 
+//create bills for occupations that do not have a bill yet
+app.controller('generateBills', ['$scope','$http','NgTableParams', function($scope,$http,ngTableParams){
+	$scope.makeBills = function(){
+		$http.get("./generateBills").success(function(data) {
+			$scope.successAlert = true;
+			$scope.failAlter=false;
+		}).error(function (error){
+			$scope.successAlert = false;
+			$scope.failAlter=true;                                 
+		});
+	}
+
+}]);	
 //view bills
 app.controller('viewBills', ['$scope','$http','NgTableParams', function($scope,$http,ngTableParams){
 	$http.get("./getBills").success(function(data) {
