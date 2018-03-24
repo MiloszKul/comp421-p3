@@ -1,0 +1,17 @@
+<div class="container">
+    <h3>Generate bills</h3>
+    <p>Create bills for all occupations that do not have a bill yet and add a room charge for each of those bills</p>
+    <div class="form-group">
+        <button class="btn btn-primary" ng-click="makeBills()">Generate Bills</button>      
+    </div>
+    <div class="form-group">
+            <div class="alert alert-success alert-dismissable" ng-show="successAlert">
+                    <button type="button" class="close" ng-click="successAlert = false">×</button>
+                    <strong>Success!</strong> Bills Created.    
+                </div>
+            <div class="alert alert-danger alert-dismissable" ng-show="failAlert"> 
+                <button type="button" class="close" ng-click="npfailAlert = false">×</button>
+                <strong>Failure!</strong> Error
+            </div>
+    </div>
+</div>
