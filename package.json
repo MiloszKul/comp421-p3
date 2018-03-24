@@ -1,0 +1,16 @@
+{
+  "name": "421-p3",
+  "version": "1.0.0",
+  "description": "comp 421 project 3",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon src/server/index.js"
+  },
+  "author": "Group 14",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "pg-promise": "^8.2.2"
+  }
+}

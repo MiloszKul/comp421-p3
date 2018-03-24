@@ -1,0 +1,22 @@
+<div class="container">
+	<h3>View Bills</h3>
+	<table ng-table="billsTable" class="table table-striped table-bordered table-responsive" show-filter="false">
+		<tr ng-repeat="bill in $data">
+				<td align="center" data-title="'Customer'" sortable="'customer'">
+						{{bill.customer}}
+				</td>
+				<td align="center" data-title="'Room'" sortable="'Room'">
+						{{bill.room}}
+				</td>
+				<td align="center" data-title="'date'" sortable="'Date'">
+						{{bill.date}}
+				</td>
+				<td align="center" data-title="'Total'" sortable="'total'">
+						${{bill.total}}
+				</td>
+				<td align="center" data-title="'Paid'" sortable="'paid'">
+						{{bill.paid !== null ? 'yes':'no'}}
+				</td>
+		</tr>
+</table>
+</div>

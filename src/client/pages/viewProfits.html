@@ -1,0 +1,17 @@
+<div class="container">
+	<h3>View Profits</h3>
+  <div class="row">
+      <div class="col-md-6">
+          <label>Start Date:</label>
+          <input type="text" class="form-control" datetimepicker ng-change="loadData()" ng-model="startDate">
+      </div>
+      <div class="col-md-6">
+          <label>End Date:</label>
+          <input type="text" class="form-control" datetimepicker ng-change="loadData()" ng-model="endDate">
+      </div>
+  <div>
+  <div class="row" style="padding-top:15px">
+    <canvas tc-chartjs chart-type="bar" chart-data="profitsChart.data" chart-options="profitsChart.options"></canvas>
+  </div>
+
+</div>

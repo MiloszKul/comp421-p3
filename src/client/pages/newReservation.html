@@ -1,0 +1,34 @@
+<div class="container" style="position: relative">
+    <h3>Make a New Reservation</h3>
+    <form name="newRes">
+        <div class="form-group">
+            <label>Reservation From:</label>
+            <input type="text" required class="form-control" datetimepicker  ng-model="reservation.startDate">
+        </div>
+        <div class="form-group">
+            <label>Reservation Until:</label>
+            <input type="text" required class="form-control" datetimepicker  ng-model="reservation.endDate">
+        </div>
+        <div class="form-group">
+            <label>Room:</label>
+            <select class="form-control" required ng-model="reservation.room" ng-options="obj.roomnumber as obj.roomnumber for obj in rooms">
+                <option value="">Select Room</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Customer:</label>
+            <select class="form-control" required ng-model="reservation.customer" ng-options="obj.id as obj.customer for obj in customers">
+                <option value="">Select Customer</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit" ng-click="addReservation()">Add Reservation</button>
+    </form>
+    <div class="alert alert-success alert-dismissable" ng-show="successAlert">
+            <button type="button" class="close" ng-click="successAlert = false">×</button>
+            <strong>Success!</strong> Reservation Created.    
+        </div>
+     <div class="alert alert-danger alert-dismissable" ng-show="failAlert"> 
+        <button type="button" class="close" ng-click="failAlert = false">×</button>
+        <strong>Failure!</strong> This room is already reserved for those dates
+    </div>
+</div>
