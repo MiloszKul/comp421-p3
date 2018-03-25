@@ -18,10 +18,14 @@ app.config(['$routeProvider',function($routeProvider) {
 				templateUrl: "src/client/pages/generateBills.html",
 				controller: "generateBills"
             })
-            .when("/occupiedRooms", {
-                templateUrl: "src/client/pages/occupiedRooms.html",
-                controller: "occupiedRooms"
-            })
+      .when("/occupiedRooms", {
+          templateUrl: "src/client/pages/occupiedRooms.html",
+          controller: "occupiedRooms"
+      })
+			.when("/manageEmployee", {
+					templateUrl: "src/client/pages/manageEmployee.html",
+					controller: "manageEmployee"
+			})
 			.when("/viewProfits", {
 				templateUrl: "src/client/pages/viewProfits.html",
 				controller: "viewProfits"
@@ -44,7 +48,7 @@ app.controller('generateBills', ['$scope','$http','NgTableParams', function($sco
 			$scope.failAlter=false;
 		}).error(function (error){
 			$scope.successAlert = false;
-			$scope.failAlter=true;                                 
+			$scope.failAlter=true;
 		});
 	}
 
@@ -91,7 +95,7 @@ app.controller('viewBills', ['$scope','$http','NgTableParams', function($scope,$
 						dataset:$scope.billsData
 				});
 	  });
-	  
+
 
  }]);
 //new reservations
@@ -107,14 +111,36 @@ app.controller('newReservation', ['$scope','$http',function($scope,$http){
 		if($scope.newRes.$valid){
 		  $http.post("./addRes",JSON.stringify($scope.reservation)).success(function(data) {
 				$scope.successAlert = true;
-				$scope.failAlter=false;
+				$scope.failAlert=false;
 			}).error(function (error){
 				$scope.successAlert = false;
-				$scope.failAlter=true;                                 
+				$scope.failAlert=true;
 			});
 		}
 	}
-	  
+
+
+}]);
+app.controller('manageEmployee',['$scope','$http', function($scope,$http){
+    $http.get("./getEmployees").success(function(data) {
+        $scope.employees=data;
+    });
+		$scope.getEmployee = function(){
+			$http.get("./getEmployee?sin=" + $scope.sin).success(function(data) {
+					$scope.employee=data;
+					$scope.employee.salary=parseInt($scope.employee.salary);
+			});
+		}
+		$scope.updateEmployee = function(){
+			$http.post("./setEmployee",JSON.stringify($scope.employee)).success(function(data) {
+				$scope.successAlert = true;
+				$scope.failAlter=false;
+				$scope.getEmployee();
+			}).error(function (error){
+				$scope.successAlert = false;
+				$scope.failAlter=true;
+			});
+		}
 
 }]);
  //view profits

@@ -60,6 +60,37 @@ app.get('/getProfits', function (req, res) {
     });
 
 });
+app.get('/getEmployees', function (req,res){
+    db.any("SELECT sin, firstname||' '||lastname employee FROM cs421g14.employee")
+        .then(data => {
+            res.status(200).send(data);
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500).send("Server Error");
+            return; // print the error;
+        });
+});
+app.get('/getEmployee', function (req,res){
+    db.one("SELECT * FROM cs421g14.employee WHERE sin='" + req.query.sin + "'")
+        .then(data => {
+            res.status(200).send(data);
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500).send("Server Error");
+            return; // print the error;
+        });
+});
+app.post('/setEmployee', function (req,res){
+  var employee=req.body;
+  db.none("UPDATE cs421g14.employee SET address='" + employee.address +
+  "',zipcode='" + employee.zipcode + "',telephonenumber='" + employee.telephonenumber +
+  "',firstname='" + employee.firstname + "',lastname='" + employee.lastname +
+  "',company='" + employee.company + "',salary=" + employee.salary + " WHERE sin='" + employee.sin + "' ");
+
+  res.status(200).send("employee updated");
+});
 app.get('/getRoomReservation', function (req, res) {
 
     var query = "SELECT r.CNT rCNT,o.CNT oCNT FROM" +
@@ -71,7 +102,7 @@ app.get('/getRoomReservation', function (req, res) {
                 " WHERE o.arrivalTime >= '" + req.query.startDate + "'::timestamp AND " +
                 " o.checkouttime <= '" + req.query.startDate + "'::timestamp) o"
 
-  
+
     db.any(query)
       .then(data => {
           res.status(200).send(data[0]);
@@ -81,12 +112,12 @@ app.get('/getRoomReservation', function (req, res) {
           res.status(500).send("Server Error");
           return; // print the error;
       });
-  
+
   });
 app.get('/getCustomers', function (req, res) {
 
     var query="SELECT id, firstname||' '||lastname customer FROM cs421g14.customer"
-  
+
     db.any(query)
       .then(data => {
           res.status(200).send(data);
@@ -96,12 +127,12 @@ app.get('/getCustomers', function (req, res) {
           res.status(500).send("Server Error");
           return; // print the error;
       });
-  
+
 });
 app.get('/getRooms', function (req, res) {
 
     var query="SELECT roomnumber FROM cs421g14.room"
-  
+
     db.any(query)
       .then(data => {
           res.status(200).send(data);
@@ -111,57 +142,54 @@ app.get('/getRooms', function (req, res) {
           res.status(500).send("Server Error");
           return; // print the error;
       });
-  
+
   });
   app.get('/generateBills', function (req, res) {
 
-    var noBill="SELECT o.id, date_part('day',o.checkouttime-o.arrivaltime) occupationlength,o.checkouttime, c.membership FROM cs421g14.occupation o " + 
+    var noBill="SELECT o.id, date_part('day',o.checkouttime-o.arrivaltime) occupationlength,o.checkouttime, c.membership FROM cs421g14.occupation o " +
     " LEFT JOIN cs421g14.customer c on o.customerid=c.id" +
     " WHERE o.id NOT IN (SELECT occupationid FROM cs421g14.bill)"
     //for(var i in data)
     db.any(noBill)
-      .then(data => {
-          for(var i in data){
-                for(var i in data){
+      .then(async data => {
+            for(var i in data){
 
-                    //create a bill for the occupation
-                    db.none("INSERT INTO cs421g14.bill VALUES(DEFAULT, ${date},'standard',${occid})", {
-                        date: data[i].checkouttime, //bills are created as checkoutdate
-                        occid:data[i].id //occupation id for bill
-                    }) 
-                    charge = data[i].occupationlength * 40 //40 per day 
-                    //add an occupation charge for this bill lvl 3 members get  10% discount
-                    if(data[i].membership ===3){
-                        charge = charge * 0.90
-                    }
-
-                    //get id of jus created bill
-                    db.one("SELECT id FROM cs421g14.bill WHERE occupationid=" + data[i].id).then(billID => {
-
-                        //insert the charge for the room
-                        db.none("INSERT INTO cs421g14.charge VALUES(DEFAULT, ${amount},${qst},${pst},'standard room charge','room charge',${time},${billid})", {
-                            amount: charge, //full amount
-                            qst: charge * 0.10, //qc 10%
-                            pst:charge * 0.05, //5%
-                            time:data[i].checkouttime,
-                            billid:billID.id,
-                        })       
-
-                    });
+                //create a bill for the occupation
+                await db.none("INSERT INTO cs421g14.bill VALUES(DEFAULT, ${date},'standard',${occid})", {
+                    date: data[i].checkouttime, //bills are created as checkoutdate
+                    occid:data[i].id //occupation id for bill
+                });
+                charge = parseInt(data[i].occupationlength) * 40 +1//40 per day
+                console.log(charge);
+                //add an occupation charge for this bill lvl 3 members get  10% discount
+                if(data[i].membership == 3){
+                    charge = charge * 0.90
                 }
-          }
-          res.status(200).send(data.length);// get new bills;
+
+                //get id of jus created bill
+                db.any("SELECT id FROM cs421g14.bill WHERE occupationid=" + parseInt(data[i].id)).then(billID => {
+                    //insert the charge for the room
+                    db.none("INSERT INTO cs421g14.charge VALUES(DEFAULT, ${amount},${qst},${pst},'standard room charge','room charge',${time},${billid})", {
+                        amount: charge, //full amount
+                        qst: charge * 0.10, //qc 10%
+                        pst:charge * 0.05, //5%
+                        time:data[i].checkouttime,
+                        billid:billID[0].id,
+                    })
+                }).catch(err=>{console.log("fuck this crap")});
+            };
+          res.status(200).send('Ok');// get new bills;
       })
       .catch(error => {
           console.log(error);
           res.status(500).send("Server Error");
           return; // print the error;
       });
-  
+
   });
   app.post('/addRes', function (req, res) {
       var reservation=req.body;
-     //check if room is reserved between those days 
+     //check if room is reserved between those days
      var query="SELECT roomid FROM cs421g14.reservation WHERE arrivalTime <= '" + reservation.startDate  +
       "' AND DepartureTime >= '" + reservation.endDate  + "' AND roomid=" + reservation.room;
     db.any(query)
@@ -171,11 +199,11 @@ app.get('/getRooms', function (req, res) {
                 start: reservation.startDate,
                 end: reservation.endDate,
                 room: reservation.room,
-                customer: reservation.customer 
+                customer: reservation.customer
             })
             res.status(200).send("Reservation Created");
         }else{
-            res.status(409).send("Room reserved for those dates"); 
+            res.status(409).send("Room reserved for those dates");
         }
       })
       .catch(error => {
