@@ -1,0 +1,30 @@
+<div class="container">
+    <h3>New Cleanup assignment</h3>
+    <form name="assignmentForm">
+        <div class="form-group">
+            <label>Select Room:</label>
+            <select class="form-control" required ng-model="assignment.room" ng-options="obj.roomnumber as obj.roomnumber for obj in rooms">
+                <option value="">Select Room</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Select Janitor:</label>
+            <select class="form-control" required ng-model="assignment.janitor" ng-options="obj.sin as obj.employee for obj in employees">
+                <option value="">Select Employee</option>
+            </select>
+        </div>
+        <div class="form-group" style="position:relative">
+            <label>Scheduled Cleaning Date:</label>
+            <input type="text" class="form-control" required datetimepicker ng-model="assignment.cleanDate">
+        </div>
+        <button class="btn btn-primary" type="submit" ng-click="assignClean()">Add Reservation</button>
+    </form>
+    <div class="alert alert-success alert-dismissable" ng-show="successAlert">
+        <button type="button" class="close" ng-click="successAlert = false">X</button>
+        <strong>Success!</strong> Cleaning Schedule Created
+    </div>
+    <div class="alert alert-danger alert-dismissable" ng-show="failAlert">
+        <button type="button" class="close" ng-click="npfailAlert = false">X</button>
+        <strong>Failure!</strong> Error
+    </div>
+</div>

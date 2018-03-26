@@ -9,6 +9,8 @@ var pgp = require('pg-promise')(/*options*/);
 
 app.use(express.static(__dirname + './../../')); //serves the index.html
 
+
+//connection config
 var cn = {
     host: 'comp421.cs.mcgill.ca', // server name or IP address;
     port: 5432,
@@ -19,11 +21,12 @@ var cn = {
 
 var db = pgp(cn);
 
-
+//end point listening
 app.listen(3000, () => {
     console.log('listening on 3000');
 })
 
+//retrieves bills from db
 app.get('/getBills', function (req, res) {
   var query="SELECT c.firstname||' '||c.lastName Customer,o.roomid room,to_char(b.time,'YYYY-MM-DD') date, sum(cb.amount) Total,p.id paid FROM cs421g14.bill b " +
   " LEFT JOIN cs421g14.occupation o on b.occupationid=o.id" +
@@ -42,6 +45,8 @@ app.get('/getBills', function (req, res) {
     });
 
 });
+
+//profits for visualization
 app.get('/getProfits', function (req, res) {
 
   var query="SELECT to_char(dd,'YYYY-MM-DD') date,SUM(p.amount) profit FROM" +
@@ -60,6 +65,8 @@ app.get('/getProfits', function (req, res) {
     });
 
 });
+
+//get list of employees
 app.get('/getEmployees', function (req,res){
     db.any("SELECT sin, firstname||' '||lastname employee FROM cs421g14.employee")
         .then(data => {
@@ -71,6 +78,8 @@ app.get('/getEmployees', function (req,res){
             return; // print the error;
         });
 });
+
+//retrieve specific employee
 app.get('/getEmployee', function (req,res){
     db.one("SELECT * FROM cs421g14.employee WHERE sin='" + req.query.sin + "'")
         .then(data => {
@@ -82,6 +91,44 @@ app.get('/getEmployee', function (req,res){
             return; // print the error;
         });
 });
+
+//retrieve list of janitors
+app.get('/getJanitors', function (req, res) {
+    db.any("SELECT sin, firstname||' '||lastname employee FROM cs421g14.employee WHERE sin in (SELECT sin from cs421g14.cleans)")
+        .then(data => {
+            res.status(200).send(data);
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500).send("Server Error");
+            return; // print the error;
+        });
+});
+
+//adds cleaning schedule overwrites schedules for same room and date if there are any
+app.post('/addCleaning', function (req, res) {
+
+    //overwrite cleaning for this day
+    var reqData = req.body
+    db.any("DELETE From cs421g14.cleans WHERE roomnumber=" + reqData.room + " AND schedule='" + reqData.cleanDate + "'::timestamp")
+        .then(data => {
+            
+            db.none("INSERT INTO cs421g14.cleans VALUES(${sin},${room},${sched})", {
+                sin: reqData.janitor,
+                room: reqData.room,
+                sched: reqData.cleanDate
+            })
+            res.status(200).send("New Cleaning Created");
+        })
+        .catch(error => {
+            console.log(error);
+            res.status(500).send("Server Error");
+            return; // print the error;
+        });
+
+});
+
+//updates an employee
 app.post('/setEmployee', function (req,res){
   var employee=req.body;
   db.none("UPDATE cs421g14.employee SET address='" + employee.address +
@@ -91,6 +138,8 @@ app.post('/setEmployee', function (req,res){
 
   res.status(200).send("employee updated");
 });
+
+//gets a room reservation
 app.get('/getRoomReservation', function (req, res) {
 
     var query = "SELECT r.CNT rCNT,o.CNT oCNT FROM" +
@@ -113,7 +162,9 @@ app.get('/getRoomReservation', function (req, res) {
           return; // print the error;
       });
 
-  });
+});
+
+//retreives all customers 
 app.get('/getCustomers', function (req, res) {
 
     var query="SELECT id, firstname||' '||lastname customer FROM cs421g14.customer"
@@ -129,6 +180,8 @@ app.get('/getCustomers', function (req, res) {
       });
 
 });
+
+//retreive all rooms 
 app.get('/getRooms', function (req, res) {
 
     var query="SELECT roomnumber FROM cs421g14.room"
@@ -143,7 +196,9 @@ app.get('/getRooms', function (req, res) {
           return; // print the error;
       });
 
-  });
+});
+
+//create all bills then create charges for room based on stay length
   app.get('/generateBills', function (req, res) {
 
     var noBill="SELECT o.id, date_part('day',o.checkouttime-o.arrivaltime) occupationlength,o.checkouttime, c.membership FROM cs421g14.occupation o " +
@@ -151,20 +206,15 @@ app.get('/getRooms', function (req, res) {
     " WHERE o.id NOT IN (SELECT occupationid FROM cs421g14.bill)"
     //for(var i in data)
     db.any(noBill)
-      .then(async data => {
+      .then(data => {
             for(var i in data){
 
                 //create a bill for the occupation
-                await db.none("INSERT INTO cs421g14.bill VALUES(DEFAULT, ${date},'standard',${occid})", {
+                db.none("INSERT INTO cs421g14.bill VALUES(DEFAULT, ${date},'standard',${occid})", {
                     date: data[i].checkouttime, //bills are created as checkoutdate
                     occid:data[i].id //occupation id for bill
                 });
                 charge = parseInt(data[i].occupationlength) * 40 +1//40 per day
-                console.log(charge);
-                //add an occupation charge for this bill lvl 3 members get  10% discount
-                if(data[i].membership == 3){
-                    charge = charge * 0.90
-                }
 
                 //get id of jus created bill
                 db.any("SELECT id FROM cs421g14.bill WHERE occupationid=" + parseInt(data[i].id)).then(billID => {
@@ -176,7 +226,7 @@ app.get('/getRooms', function (req, res) {
                         time:data[i].checkouttime,
                         billid:billID[0].id,
                     })
-                }).catch(err=>{console.log("fuck this crap")});
+                }).catch(err=>{console.log("error")});
             };
           res.status(200).send('Ok');// get new bills;
       })
@@ -186,7 +236,9 @@ app.get('/getRooms', function (req, res) {
           return; // print the error;
       });
 
-  });
+});
+
+//create new reservation
   app.post('/addRes', function (req, res) {
       var reservation=req.body;
      //check if room is reserved between those days
